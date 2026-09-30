@@ -1,0 +1,4 @@
+.env
+__pycache__/
+*.npz
+process_denoise_csv_output/

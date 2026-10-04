@@ -29,4 +29,8 @@ def fetch_iq_option_candles(email, password, symbol="EURUSD", timeframe=60, days
     print('='*50)
     print('Success!!')
     print('='*50)
-    return df['close'].to_numpy()
+
+    prices = df['close'].to_numpy()
+    candle_timestamps = df['from'].to_numpy()
+
+    return prices, candle_timestamps

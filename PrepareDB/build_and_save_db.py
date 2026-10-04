@@ -25,5 +25,6 @@ def build_and_save_db(filepath, X_denoised, prices, candle_timestamps, n=30, for
         filepath, 
         patterns=X_denoised, 
         future_returns=np.array(future_returns),
-        timestamps=np.array(pattern_timestamps)
+        timestamps=np.array(pattern_timestamps),
+        full_prices=prices     
     )

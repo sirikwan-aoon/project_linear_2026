@@ -18,3 +18,5 @@ def prepareDB_main(email, password, symbol="EURUSD-OTC", timeframe=60, days=60, 
     print("Keys ในไฟล์:", data.files)
     print("ขนาด Patterns Matrix:", data['patterns'].shape)
     print("จำนวน Future Returns:", len(data['future_returns']))
+
+    return prices

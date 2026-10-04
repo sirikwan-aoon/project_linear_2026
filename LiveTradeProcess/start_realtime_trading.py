@@ -1,7 +1,7 @@
 from LiveTradeProcess.prepare_live_prices import prepare_live_prices
 from LiveTradeProcess.order_process import check_order_result, execute_order
 from LiveTradeProcess.predict_pattern_knn import predict_pattern_knn
-from LiveTradeProcess.plot_match_pattern import plot_matched_patterns
+from LiveTradeProcess.plot_match_pattern import plot_matched_patterns_macro, plot_matched_patterns_with_local_zoom
 from SupportResistanceAnalyze.get_sr_kmeans import get_sr_kmeans
 from SupportResistanceAnalyze.is_near_sr_level import is_near_sr_level
 
@@ -12,7 +12,7 @@ import time
 # ========================================================
 # Step 3: Real-time Loop (Candle Synced)
 # ========================================================
-def start_realtime_trading(email, password, X_denoised, future_returns, timestamps, symbol="EURUSD-OTC", amount=10, duration=1):
+def start_realtime_trading(email, password, X_denoised, future_returns, timestamps, prices, symbol="EURUSD-OTC", amount=10, duration=1):
     API = IQ_Option(email, password)
     API.connect()
     
@@ -35,7 +35,8 @@ def start_realtime_trading(email, password, X_denoised, future_returns, timestam
                 p_live_norm, X_denoised, future_returns, timestamps, k=5, min_win_rate=80.0
             )
 
-            # plot_matched_patterns(p_live_norm, X_denoised, result, symbol="EURUSD-OTC") #กรณีที่ต้องการดูกราฟแพทเทิร์นที่คล้ายกัน กับ แพทเทิร์นปัจจุบัน
+            plot_matched_patterns_macro(p_live_norm, X_denoised, result, prices, symbol="EURUSD-OTC") #กรณีที่ต้องการดูกราฟแพทเทิร์นที่คล้ายกัน กับ แพทเทิร์นปัจจุบัน
+            # plot_matched_patterns_with_local_zoom(prices, result, n=30, context_padding=50, symbol="EURUSD-OTC")
 
             # ดึงราคาย้อนหลัง 100-150 แท่งเพื่อหาแนวระดับใหญ่
             candles = API.get_candles(symbol, 60, 150, time.time())

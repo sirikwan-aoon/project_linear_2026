@@ -12,7 +12,8 @@ def load_db(filepath):
         X_denoised = data['patterns']
         future_returns = data['future_returns']
         timestamps = data['timestamps']
+        full_prices = data['full_prices']
 
     print(f"โหลดข้อมูลสำเร็จใน {time.time() - start_time:.2f} วินาที (พร้อมเทรด Real-time)")
 
-    return X_denoised, future_returns, timestamps
+    return X_denoised, future_returns, timestamps, full_prices

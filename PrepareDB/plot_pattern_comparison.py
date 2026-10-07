@@ -1,30 +1,58 @@
 import matplotlib.pyplot as plt
+import os
+import pandas as pd
 
-def plot_pattern_comparison(X, X_denoised, sample_indices=[0, 100, 500]):
-    """
-    ฟังก์ชันพล็อตเปรียบเทียบเวกเตอร์ก่อนและหลัง Denoising
-    sample_indices: ดัชนีของ Window ที่ต้องการสุ่มมาดูเปรียบเทียบ
-    """
-    num_samples = len(sample_indices)
-    fig, axes = plt.subplots(num_samples, 1, figsize=(10, 3 * num_samples), sharex=True)
+def plot_pattern_comparison(window_idx=0):
+    # ระบุ Folder ที่เก็บไฟล์ CSV
+        output_dir = "process_denoise_csv_output"
     
-    if num_samples == 1:
-        axes = [axes]
-        
-    for i, idx in enumerate(sample_indices):
-        # เส้นสีเทาประ: ข้อมูลหลัง Normalized ที่ยังมี Noise
-        axes[i].plot(X[idx], label='Original Normalized (With Noise)', 
-                     color='gray', linestyle='--', alpha=0.7, marker='o', markersize=4)
-        
-        # เส้นสีน้ำเงินทึบ: ข้อมูลที่ผ่านการกรอง SVD แล้ว
-        axes[i].plot(X_denoised[idx], label='SVD Denoised (Main Pattern)', 
-                     color='#1f77b4', linewidth=2.5)
-        
-        axes[i].set_title(f"Sliding Window Index: {idx}", fontsize=11, fontweight='bold')
-        axes[i].set_ylabel("Normalized Value")
-        axes[i].grid(True, linestyle=':', alpha=0.6)
-        axes[i].legend(loc='upper left')
-        
-    axes[-1].set_xlabel("Time Step within Window ($n$)")
-    plt.tight_layout()
-    plt.show()
+        # 1. โหลดข้อมูล Window_0 จากแต่ละขั้นตอน
+        w1 = pd.read_csv(
+            os.path.join(output_dir, "1_sliding_window.csv"), index_col=0
+        ).iloc[window_idx]
+        w2 = pd.read_csv(
+            os.path.join(output_dir, "2_mean_centered.csv"), index_col=0
+        ).iloc[window_idx]
+        w3 = pd.read_csv(
+            os.path.join(output_dir, "3_normalized.csv"), index_col=0
+        ).iloc[window_idx]
+        w4 = pd.read_csv(
+            os.path.join(output_dir, "4_X_denoised.csv"), index_col=0
+        ).iloc[window_idx]
+    
+        # 2. พล็อตกราฟเปรียบเทียบแบบ 2x2
+        fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+    
+        # Step 1: Raw
+        axes[0, 0].plot(w1.values, color="#1f77b4", linewidth=2)
+        axes[0, 0].set_title("1. Raw Sliding Window (Original Price)")
+        axes[0, 0].set_ylabel("Price")
+        axes[0, 0].grid(True)
+    
+        # Step 2: Mean Centered
+        axes[0, 1].plot(w2.values, color="#ff7f0e", linewidth=2)
+        axes[0, 1].set_title("2. Mean Centered (Zero-Mean)")
+        axes[0, 1].set_ylabel("Centered Price")
+        axes[0, 1].grid(True)
+    
+        # Step 3: Normalized
+        axes[1, 0].plot(w3.values, color="#2ca02c", linewidth=2)
+        axes[1, 0].set_title("3. Normalized (Standardized Scale)")
+        axes[1, 0].set_xlabel("Time Step (t)")
+        axes[1, 0].set_ylabel("Normalized Value")
+        axes[1, 0].grid(True)
+    
+        # Step 4: Denoised
+        axes[1, 1].plot(w4.values, color="#d62728", linewidth=2)
+        axes[1, 1].set_title("4. Denoised Matrix (Noise Reduced)")
+        axes[1, 1].set_xlabel("Time Step (t)")
+        axes[1, 1].set_ylabel("Denoised Value")
+        axes[1, 1].grid(True)
+    
+        plt.suptitle(
+            f"Transformation Steps of Window_{window_idx} Pattern Pipeline",
+            fontsize=14,
+            fontweight="bold",
+        )
+        plt.tight_layout()
+        plt.show()

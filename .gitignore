@@ -2,6 +2,7 @@
 __pycache__/
 *.npz
 *.csv
+.vscode/
 process_denoise_csv_output/
 DemonstrateTheCalculation/
 StatisticalCalculation/

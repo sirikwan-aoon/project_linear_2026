@@ -6,6 +6,7 @@ from SupportResistanceAnalyze.get_sr_kmeans import get_sr_kmeans
 from SupportResistanceAnalyze.is_near_sr_level import is_near_sr_level
 
 from iqoptionapi.stable_api import IQ_Option
+import iqoptionapi.constants as OP_code
 import numpy as np
 import time
 
@@ -21,13 +22,33 @@ def start_realtime_trading(email, password, X_denoised, future_returns, timestam
         return
 
     print(f"✅ เชื่อมต่อ IQ Option สำเร็จ! เริ่มเฝ้าราคา {symbol}...")
+    API.change_balance("PRACTICE")
+
+    all_asset = API.get_all_profit() #เช็คว่าสินทรัพย์ใดเปิดให้บริการบ้าง...
+
+    if symbol in all_asset and all_asset[symbol]['turbo'] > 0:
+        payout = all_asset[symbol]['turbo'] * 100
+        print(f"🟢 {symbol} เปิดอยู่ (Payout: {payout}%)")
+    else:
+        print(f"🔴 {symbol} ปิดอยู่ หรือไม่มีข้อมูล Payout")
+        pass
+
+    # for s, data in all_asset.items():
+    #     profit = data.get('turbo', 0) if isinstance(data, dict) else 0
+
+    #     if profit > 0:
+    #         payout = profit * 100
+    #         print(f"🟢 {s} เปิดอยู่ (Payout: {payout}%)")
+    #     else:
+    #         print(f"🔴 {s} ปิดอยู่ หรือไม่มีข้อมูล Payout")
+
+    # print(API.get_all_ACTIVES_OPCODE()) #เช็คสินทรัพย์ที่สามารถใช้งานได้ใน Library
 
     while True:
         try:
-            # 1. ดึงราคา 30 แท่งล่าสุดผ่าน Connection เดิม (เร็วกว่า ไม่ต้อง Re-login)
+            # 1. ดึงข้อมูลราคา 30 แท่งล่าสุดผ่าน
             candles = API.get_candles(symbol, 60, 30, time.time())
             live_prices = np.array([c['close'] for c in candles])
-            
             p_live_norm = prepare_live_prices(live_prices)
             
             # 2. คำนวณ Pattern Matching
@@ -35,7 +56,7 @@ def start_realtime_trading(email, password, X_denoised, future_returns, timestam
                 p_live_norm, X_denoised, future_returns, timestamps, k=5, min_win_rate=80.0
             )
 
-            plot_matched_patterns_macro(p_live_norm, X_denoised, result, prices, symbol="EURUSD-OTC") #กรณีที่ต้องการดูกราฟแพทเทิร์นที่คล้ายกัน กับ แพทเทิร์นปัจจุบัน
+            # plot_matched_patterns_macro(p_live_norm, X_denoised, result, prices, symbol="EURUSD-OTC") #กรณีที่ต้องการดูกราฟแพทเทิร์นที่คล้ายกัน กับ แพทเทิร์นปัจจุบัน
             # plot_matched_patterns_with_local_zoom(prices, result, n=30, context_padding=50, symbol="EURUSD-OTC")
 
             # ดึงราคาย้อนหลัง 100-150 แท่งเพื่อหาแนวระดับใหญ่
@@ -60,14 +81,14 @@ def start_realtime_trading(email, password, X_denoised, future_returns, timestam
                 is_confirmed = True
                 print(f"\n🎯 [{time.strftime('%H:%M:%S')}] [CONFIRMED] สัญญาณ PUT + แตะแนวต้านที่ {current_price:.5f}")
             elif signal != "WAIT":
-                print(f"[{time.strftime('%H:%M:%S')}] ⚠️ ข้ามสัญญาณ {signal}: รูปทรงตรงแต่ราคาไม่อยู่ใกล้แนวรับ-แนวต้าน", end="\r")
+                print(f"[{time.strftime('%H:%M:%S')}] ⚠️ ข้ามสัญญาณ {signal}: Win rate และ Average return เข้าเงื่อนไขที่กำหนด แต่ราคาไม่อยู่ใกล้แนวรับ-แนวต้าน")
             else:
-                print(f"[{time.strftime('%H:%M:%S')}] รูปทรงยังไม่ชัดเจน (WAIT)", end="\r")
+                print(f"[{time.strftime('%H:%M:%S')}] Win rate หรือ Average return ต่ำกว่าที่กำหนด (WAIT...)")
 
             # ยิงออเดอร์เมื่อผ่านการกรองครบทุกเงื่อนไขเท่านั้น
             if is_confirmed:
                 win_rate = result['win_rate_call'] if signal == 'CALL' else result['win_rate_put']
-                print(f"📊 Win Rate คาดการณ์: {win_rate:.1f}% | ผลตอบแทนเฉลี่ย: {result['avg_return_%']:.4f}%")
+                print(f"📊 Win Rate คาดการณ์: {win_rate:.1f}% | การเปลี่ยนแปลงราคาเฉลี่ย: {result['avg_return_%']:.4f}%")
                 
                 # ส่งคำสั่งเข้า API
                 success, order_id = execute_order(API, signal, active=symbol, amount=amount, duration=duration)

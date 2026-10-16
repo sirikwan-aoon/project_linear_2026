@@ -21,6 +21,9 @@ def fetch_iq_option_candles(email, password, symbol="EURUSD", timeframe=60, days
         candles = API.get_candles(symbol, timeframe, fetch_count, end_time)
         # print(candles) #ถ้าไม่อยากให้แสดงข้อมูลที่โหลดเข้ามา comment ตรงนี้!!!!!
         if not candles:
+            print(
+                f"⚠️ เซิร์ฟเวอร์ไม่ส่งข้อมูลย้อนหลังเพิ่มแล้วที่ Timestamp: {end_time}"
+            )
             break
             
         all_candles = candles + all_candles  # ต่อข้อมูลย้อนหลัง
@@ -54,6 +57,7 @@ def fetch_iq_option_candles(email, password, symbol="EURUSD", timeframe=60, days
     print('='*50)
 
     prices = df['close'].to_numpy()
+    
     candle_timestamps = df['from'].to_numpy()
 
     print()

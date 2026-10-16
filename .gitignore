@@ -1,4 +1,11 @@
 .env
 __pycache__/
 *.npz
+*.csv
 process_denoise_csv_output/
+DemonstrateTheCalculation/
+StatisticalCalculation/
+Backtest/
+run_backtest.py
+prepare_data_backtest.py
+evaluate_backtest.py

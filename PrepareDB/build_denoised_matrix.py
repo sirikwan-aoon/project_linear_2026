@@ -2,13 +2,21 @@ import os
 import pandas as pd
 import numpy as np
 
+def print_data(data ,topic):
+    print()
+    print('='*50)
+    print(topic)
+    print('='*50)
+    print(data)
+    print()
+
 # ==========================================
 # 2. Data Pipeline Processing Logic
 # ==========================================
 def build_denoised_matrix(
     prices,
     timestamps,
-    n=30,
+    window_size=30,
     k=3,
     forecast_horizon=1,
     max_gap_sec=65, # จริงๆ คือ 60 วินาที แต่ 65 เป็นค่าที่ยอมรับได้เผื่อระบบดีเลย์เล็กน้อย
@@ -18,6 +26,8 @@ def build_denoised_matrix(
     if export_csv and not os.path.exists(output_dir):
         os.makedirs(output_dir, exist_ok=True)
 
+    # print_data(prices, 'Close Prices Vector')
+
     # ขั้นตอนที่ 1: Sliding Window Vectorization
     valid_windows = []
     valid_timestamps = []
@@ -25,7 +35,7 @@ def build_denoised_matrix(
     valid_indices = []
 
     total_len = len(prices)
-    max_iter = total_len - n - forecast_horizon + 1
+    max_iter = total_len - n - forecast_horizon + 1 #การตัดขอบเขตท้ายของชุดข้อมูลออก
 
     for i in range(max_iter):
         # 1.1 ดึงเวกเตอร์ราคารวม (P_i) และเวกเตอร์เวลารวม (T_i) ขนาด (n + h) แท่ง
@@ -41,8 +51,11 @@ def build_denoised_matrix(
         p_current     = full_prices[n - 1]     # ราคาปิดแท่งสุดท้ายใน Window (t_n)
         p_future      = full_prices[n + forecast_horizon - 1] # ราคาปิดอนาคต (t_n+h)
         
-        # 1.4 คำนวณ Future Return (%)
+        # 1.4 คำนวณ Future Return
         ret = (p_future - p_current) / p_current
+
+        if len(full_ts) < (n + forecast_horizon):
+            continue
 
         valid_windows.append(window_prices)
         valid_timestamps.append(full_ts[n - 1])  # เก็บ Timestamp ของแท่งราคาปิดแท่งสุดท้าย
@@ -53,6 +66,10 @@ def build_denoised_matrix(
     windows = np.array(valid_windows)
     valid_timestamps = np.array(valid_timestamps)
     valid_future_returns = np.array(valid_future_returns)
+
+
+    # print_data(windows, 'Windows Matrix')
+    # print_data(valid_future_returns, 'Future Return')
 
     cols = [f"t+{i}" for i in range(n)]
     rows = [f"Window_{idx}" for idx in valid_indices]  # ใช้ Index ดั้งเดิมตั้งชื่อแถว
@@ -65,6 +82,9 @@ def build_denoised_matrix(
     # ขั้นตอนที่ 2: Mean Centering
     means = np.mean(windows, axis=1, keepdims=True)
     p_centered = windows - means
+
+    # print_data(means, 'Means')
+    # print_data(p_centered, 'Mean Centering')
 
     if export_csv:
         # บันทึก ค่าเฉลี่ยของแต่ละ Window
@@ -81,6 +101,9 @@ def build_denoised_matrix(
     norms[norms == 0] = 1e-10
     p_norm = p_centered / norms
 
+    # print_data(norms, 'Norms')
+    # print_data(p_norm, 'Vector Normalization')
+    
     if export_csv:
         # บันทึก ค่า Norm
         pd.DataFrame(norms, index=rows, columns=["norm"]).to_csv(
@@ -109,11 +132,16 @@ def build_denoised_matrix(
             os.path.join(output_dir, "4_X_denoised.csv"), float_format="%.4f"
         )
 
-    print()
-    print('='*50)
-    print('Denoised data matrix')
-    print('='*50)
+    # print_data(U, 'U')
+    # print_data(U[:, :k], 'U[:, :k]')
+
+    # print_data(S, 'S')
+    # print_data(np.diag(S[:k]), 'np.diag(S[:k])')
+
+    # print_data(Vt, 'Vt')
+    # print_data(Vt[:k, :], 'Vt[:k, :]')
+
     df = pd.DataFrame(X_denoised, index=rows, columns=cols)
-    print(df)
+    print_data(df, 'Denoised data matrix')
     
-    return X, X_denoised, valid_future_returns, valid_timestamps
+    return X_denoised, valid_future_returns, valid_timestamps

@@ -11,7 +11,7 @@ def prepareDB_main(email, password, symbol="EURUSD-OTC", filepath='db.npz', time
     build_and_save_db(filepath=filepath, X_denoised=X_denoised, prices=prices, valid_timestamps=valid_timestamps, future_returns=future_return, raw_timestamps=raw_timestamps)
 
     # โหลดไฟล์มาตรวจสอบ
-    data = np.load('db.npz')
+    data = np.load(filepath)
 
     print()
     print("Keys ในไฟล์:", data.files)

@@ -31,7 +31,7 @@ def start_realtime_trading(email, password, X_denoised, future_returns, timestam
         print(f"🟢 {symbol} เปิดอยู่ (Payout: {payout}%)")
     else:
         print(f"🔴 {symbol} ปิดอยู่ หรือไม่มีข้อมูล Payout")
-        pass
+        return
 
     # for s, data in all_asset.items():
     #     profit = data.get('turbo', 0) if isinstance(data, dict) else 0

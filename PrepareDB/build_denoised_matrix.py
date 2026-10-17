@@ -35,30 +35,30 @@ def build_denoised_matrix(
     valid_indices = []
 
     total_len = len(prices)
-    max_iter = total_len - n - forecast_horizon + 1 #การตัดขอบเขตท้ายของชุดข้อมูลออก
+    max_iter = total_len - window_size - forecast_horizon + 1 #การตัดขอบเขตท้ายของชุดข้อมูลออก
 
     for i in range(max_iter):
         # 1.1 ดึงเวกเตอร์ราคารวม (P_i) และเวกเตอร์เวลารวม (T_i) ขนาด (n + h) แท่ง
-        full_prices = prices[i : i + n + forecast_horizon]      # P_i in R^(n+h)
-        full_ts     = timestamps[i : i + n + forecast_horizon]  # T_i in R^(n+h)
+        full_prices = prices[i : i + window_size + forecast_horizon]      # P_i in R^(n+h)
+        full_ts     = timestamps[i : i + window_size + forecast_horizon]  # T_i in R^(n+h)
 
         # 1.2 ตรวจสอบ Time Gap รวดเดียวตลอดทั้ง (n + h)
         if np.any(np.diff(full_ts) > max_gap_sec):
             continue  # หากจุดใดจุดหนึ่งใน 31 แท่งมี Gap เกินกำหนด ให้ข้ามทิ้ง
 
         # 1.3 แยกส่วน Feature Vector (n แท่งแรก) และ Target
-        window_prices = full_prices[:n]
-        p_current     = full_prices[n - 1]     # ราคาปิดแท่งสุดท้ายใน Window (t_n)
-        p_future      = full_prices[n + forecast_horizon - 1] # ราคาปิดอนาคต (t_n+h)
+        window_prices = full_prices[:window_size]
+        p_current     = full_prices[window_size - 1]     # ราคาปิดแท่งสุดท้ายใน Window (t_n)
+        p_future      = full_prices[window_size + forecast_horizon - 1] # ราคาปิดอนาคต (t_n+h)
         
         # 1.4 คำนวณ Future Return
         ret = (p_future - p_current) / p_current
 
-        if len(full_ts) < (n + forecast_horizon):
+        if len(full_ts) < (window_size + forecast_horizon):
             continue
 
         valid_windows.append(window_prices)
-        valid_timestamps.append(full_ts[n - 1])  # เก็บ Timestamp ของแท่งราคาปิดแท่งสุดท้าย
+        valid_timestamps.append(full_ts[window_size - 1])  # เก็บ Timestamp ของแท่งราคาปิดแท่งสุดท้าย
         valid_future_returns.append(ret)
         valid_indices.append(i)
 
@@ -71,7 +71,7 @@ def build_denoised_matrix(
     # print_data(windows, 'Windows Matrix')
     # print_data(valid_future_returns, 'Future Return')
 
-    cols = [f"t+{i}" for i in range(n)]
+    cols = [f"t+{i}" for i in range(window_size)]
     rows = [f"Window_{idx}" for idx in valid_indices]  # ใช้ Index ดั้งเดิมตั้งชื่อแถว
 
     if export_csv:

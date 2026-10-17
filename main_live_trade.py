@@ -10,7 +10,7 @@ if __name__ == "__main__":
     password = os.getenv("IQ_PASSWORD")
 
     #โหลดข้อมูลจาก db.npz เข้ามาก่อน
-    X_denoised, future_returns, timestamps, full_prices = load_db('db.npz')
+    X_denoised, future_returns, timestamps, full_prices = load_db('EURUSD.npz')
 
     # เริ่มรันระบบ
-    start_realtime_trading(email, password, X_denoised, future_returns, timestamps, full_prices, symbol="USDHKD-OTC", amount=10, duration=1)
+    start_realtime_trading(email, password, X_denoised, future_returns, timestamps, full_prices, symbol="EURUSD", amount=10, duration=1)

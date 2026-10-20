@@ -24,14 +24,14 @@ def start_realtime_trading(email, password, X_denoised, future_returns, timestam
     print(f"✅ เชื่อมต่อ IQ Option สำเร็จ! เริ่มเฝ้าราคา {symbol}...")
     API.change_balance("PRACTICE")
 
-    all_asset = API.get_all_profit() #เช็คว่าสินทรัพย์ใดเปิดให้บริการบ้าง...
+    all_profit = API.get_all_profit() #เช็คว่าสินทรัพย์ใดเปิดให้บริการบ้าง...
 
-    if symbol in all_asset and all_asset[symbol]['turbo'] > 0:
-        payout = all_asset[symbol]['turbo'] * 100
+    if symbol in all_profit and all_profit[symbol]['turbo'] > 0:
+        payout = all_profit[symbol]['turbo'] * 100
         print(f"🟢 {symbol} เปิดอยู่ (Payout: {payout}%)")
     else:
         print(f"🔴 {symbol} ปิดอยู่ หรือไม่มีข้อมูล Payout")
-        return
+        # return
 
     # for s, data in all_asset.items():
     #     profit = data.get('turbo', 0) if isinstance(data, dict) else 0
@@ -42,7 +42,20 @@ def start_realtime_trading(email, password, X_denoised, future_returns, timestam
     #     else:
     #         print(f"🔴 {s} ปิดอยู่ หรือไม่มีข้อมูล Payout")
 
-    # print(API.get_all_ACTIVES_OPCODE()) #เช็คสินทรัพย์ที่สามารถใช้งานได้ใน Library
+    # print("\n--- 🌐 รายชื่อสินทรัพย์ทั้งหมดที่เปิดให้เทรด ณ ตอนนี้ ---")
+    # all_actives = API.get_all_ACTIVES_OPCODE() # คืนค่าเป็น {'EURUSD': 1, 'USDHKD-OTC': 76, ...}
+
+    # for asset_name in all_actives.keys():
+    #     # 2.1 เช็คฝั่ง Turbo/Binary
+    #     turbo_payout = 0
+    #     if asset_name in all_profit and isinstance(all_profit[asset_name], dict):
+    #         turbo_payout = all_profit[asset_name].get('turbo', 0) * 100
+
+    #     # ปริ้นท์เฉพาะตัวที่เปิดให้อย่างน้อย 1 หมวด
+    #     if turbo_payout > 0:
+    #         print(f"🟢 {asset_name:<12} | Turbo/Binary: {turbo_payout:>2}%")
+
+    # print(all_active) #เช็คสินทรัพย์ที่สามารถใช้งานได้ใน Library
 
     while True:
         try:

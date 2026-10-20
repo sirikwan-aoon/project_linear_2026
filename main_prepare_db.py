@@ -11,7 +11,7 @@ if __name__ == "__main__":
 
     # fetch_iq_option_candles(email=email, password=password, symbol='EURUSD', timeframe=60, days=60)
 
-    prepareDB_main(email, password, symbol="EURUSD", filepath='EURUSD.npz', timeframe=60, days=60)
+    prepareDB_main(email, password, symbol="EURJPY-OTC", filepath='EURJPY-OTC.npz', timeframe=60, days=60)
     # plot_pattern_comparison(window_idx=33)
 
         
